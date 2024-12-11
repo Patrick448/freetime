@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "1006969912085",
+    "project_id": "mobappslab-68ba1",
+    "storage_bucket": "mobappslab-68ba1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1006969912085:android:bdffe2b80af590a3be071c",
+        "android_client_info": {
+          "package_name": "com.app.freetime"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkj1H1ng5P70KjFdNvB3yzK1eSynZDxuE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1006969912085:android:f4d3d44b1f0033b4be071c",
+        "android_client_info": {
+          "package_name": "com.example.introkotlin"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDkj1H1ng5P70KjFdNvB3yzK1eSynZDxuE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
