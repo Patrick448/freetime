@@ -41,7 +41,8 @@ class LoginRegisterActivity : ComponentActivity() {
             FreetimeTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     LoginRegisterScreen(
-                        auth = auth,
+                        loginCalback = { email, password -> signIn(email, password) },
+                        registerCallback = { email, password -> createAccount(email, password) },
                         modifier = Modifier.padding(innerPadding)
                     )
                 }
@@ -58,7 +59,7 @@ class LoginRegisterActivity : ComponentActivity() {
                     // Sign in success, update UI with the signed-in user's information
                     Log.d(TAG, "createUserWithEmail:success")
                     val user = auth.currentUser
-                    updateUI(user)
+                    goToHome()
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w(TAG, "createUserWithEmail:failure", task.exception)
@@ -81,7 +82,7 @@ class LoginRegisterActivity : ComponentActivity() {
                     // Sign in success, update UI with the signed-in user's information
                     Log.d(TAG, "signInWithEmail:success")
                     val user = auth.currentUser
-                    updateUI(user)
+                    goToHome()
                 } else {
                     // If sign in fails, display a message to the user.
                     Log.w(TAG, "signInWithEmail:failure", task.exception)
@@ -119,7 +120,7 @@ class LoginRegisterActivity : ComponentActivity() {
     }
 
     companion object {
-        private const val TAG = "MainActivity"
+        private const val TAG = "LoginRegisterActivity"
     }
 
 }
@@ -128,26 +129,19 @@ fun validateEmail(email: String): Boolean {
     return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
 }
 fun validatePassword(password: String): Boolean {
-    //ensure the email adress has a correct
-    //format and password contains at least 8 characters, including an uppercase letter, a
-    //number, and a special character
-
     val passwordPattern = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#\$%^&+=])(?=\\S+$).{8,}$".toRegex()
     return passwordPattern.matches(password)
 }
 
 
 @Composable
-fun LoginRegisterScreen(auth: FirebaseAuth, modifier: Modifier) {
+fun LoginForm(loginCalback:(String, String) -> Unit, modifier: Modifier) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var isLogin by remember { mutableStateOf(true) }
     var message by remember { mutableStateOf("") }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
+        modifier = modifier,
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -169,38 +163,89 @@ fun LoginRegisterScreen(auth: FirebaseAuth, modifier: Modifier) {
         )
         Spacer(modifier = Modifier.height(16.dp))
         Button(
-            onClick = {
-                if (isLogin) {
-                    auth.signInWithEmailAndPassword(email, password)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                message = "Login successful"
-                            } else {
-                                message = "Login failed: ${task.exception?.message}"
-                            }
-                        }
-                } else {
-                    auth.createUserWithEmailAndPassword(email, password)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                message = "Registration successful"
-                            } else {
-                                message = "Registration failed: ${task.exception?.message}"
-                            }
-                        }
-                }
-            },
+            onClick = { loginCalback(email, password) },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(if (isLogin) "Login" else "Register")
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        TextButton(onClick = { isLogin = !isLogin }) {
-            Text(if (isLogin) "Don't have an account? Register" else "Already have an account? Login")
+            Text("Login")
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text(message)
     }
+}
+
+@Composable
+fun RegisterForm(registerCallback:(String, String) -> Unit, modifier: Modifier) {
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
+    var message by remember { mutableStateOf("") }
+    var name by remember { mutableStateOf("") }
+
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        TextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Email") },
+            modifier = Modifier.fillMaxWidth(),
+            isError = !validateEmail(email)
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        TextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Password") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth(),
+            isError = !validatePassword(password)
+        )
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TextField(
+            value = confirmPassword,
+            onValueChange = { confirmPassword = it },
+            label = { Text("Confirm Password") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth(),
+            isError = !validatePassword(confirmPassword)
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TextField(
+            value = name,
+            onValueChange = { name = it },
+            label = { Text("Name") },
+            modifier = Modifier.fillMaxWidth(),
+        )
+
+        Button(
+            onClick = { registerCallback(email, password) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Register")
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(message)
+    }
+}
+
+
+@Composable
+fun LoginRegisterScreen(loginCalback:(String, String) -> Unit, registerCallback:(String, String) ->Unit,  modifier: Modifier) {
+    var isLogin by remember { mutableStateOf(true) }
+
+    //render LoginForm if isLogin is true
+    if (isLogin) {
+        LoginForm(loginCalback = loginCalback, modifier = modifier)
+
+    } else {
+        RegisterForm(registerCallback = registerCallback, modifier = modifier)
+    }
+
 }
 
 @Composable
