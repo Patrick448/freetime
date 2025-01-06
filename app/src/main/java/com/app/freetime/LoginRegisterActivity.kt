@@ -20,12 +20,14 @@ import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.auth
 import com.google.firebase.Firebase
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 //import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import java.nio.file.WatchEvent
 
 class LoginRegisterActivity : ComponentActivity() {
 
@@ -36,14 +38,16 @@ class LoginRegisterActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         auth = Firebase.auth
-        createAccount("a@b.com", "password")
+        //createAccount("a@b.com", "password")
         setContent {
             FreetimeTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                Scaffold(modifier = Modifier.fillMaxSize().padding(16.dp)) { innerPadding ->
                     LoginRegisterScreen(
                         loginCalback = { email, password -> signIn(email, password) },
                         registerCallback = { email, password -> createAccount(email, password) },
-                        modifier = Modifier.padding(innerPadding)
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding)
                     )
                 }
             }
@@ -186,6 +190,8 @@ fun RegisterForm(registerCallback:(String, String) -> Unit, modifier: Modifier) 
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+
+
         TextField(
             value = email,
             onValueChange = { email = it },
@@ -238,13 +244,25 @@ fun RegisterForm(registerCallback:(String, String) -> Unit, modifier: Modifier) 
 fun LoginRegisterScreen(loginCalback:(String, String) -> Unit, registerCallback:(String, String) ->Unit,  modifier: Modifier) {
     var isLogin by remember { mutableStateOf(true) }
 
-    //render LoginForm if isLogin is true
-    if (isLogin) {
-        LoginForm(loginCalback = loginCalback, modifier = modifier)
+    Column (modifier= modifier,
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+    ) {
 
-    } else {
-        RegisterForm(registerCallback = registerCallback, modifier = modifier)
+        if (isLogin) {
+            LoginForm(loginCalback = loginCalback, modifier = Modifier)
+
+        } else {
+            RegisterForm(registerCallback = registerCallback, modifier = Modifier)
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+        TextButton(onClick = { isLogin = !isLogin }) {
+            Text(if (isLogin) "Don't have an account? Register" else "Already have an account? Login")
+        }
     }
+    //render LoginForm if isLogin is true
+
 
 }
 
