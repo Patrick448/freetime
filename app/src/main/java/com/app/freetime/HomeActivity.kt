@@ -110,7 +110,7 @@ class HomeActivity : ComponentActivity() {
     }
 
     private fun goToTips() {
-        val intent = Intent(this, TipsActivity::class.java)
+        val intent = Intent(this, TaskActivity::class.java)
         startActivity(intent)
     }
 }
