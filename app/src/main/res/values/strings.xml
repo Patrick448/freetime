@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">freetime</string>
     <string name="title_activity_home">HomeActivity</string>
+    <string name="title_activity_tips">TipsActivity</string>
 </resources>

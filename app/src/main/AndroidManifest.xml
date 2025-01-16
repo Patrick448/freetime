@@ -15,6 +15,11 @@
         android:theme="@style/Theme.Freetime"
         tools:targetApi="31">
         <activity
+            android:name=".TipsActivity"
+            android:exported="false"
+            android:label="@string/title_activity_tips"
+            android:theme="@style/Theme.Freetime" />
+        <activity
             android:name=".HomeActivity"
             android:exported="false"
             android:label="@string/title_activity_home"

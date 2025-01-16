@@ -1,6 +1,10 @@
 package com.app.freetime
 
+import android.content.Intent
 import android.os.Bundle
+import android.util.Log
+import android.widget.Button
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -15,7 +19,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.app.freetime.ui.theme.FreetimeTheme
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,9 +37,15 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Clear
 import com.app.freetime.Model.Tip
 import com.google.firebase.Firebase
+import com.google.firebase.auth.auth
 import com.google.firebase.firestore.firestore
 
 
@@ -44,20 +53,33 @@ class HomeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        var dh: DataHandler = DataHandler()
 
-        val db = Firebase.firestore
+        /*val db = Firebase.firestore
         var dataSets = listOf<Tip>()
-        db.collection("tips").get().addOnSuccessListener { documents ->
-            for (document in documents) {
-                val title = document["title"].toString()
-                val text = document["text"].toString()
-                val isFavorite: Boolean = document["favorite"] as Boolean
-                val tip :Tip = Tip(id = "", title=title, text = text, isFavorite = isFavorite)
-                print(tip.toString())
+        db.collection("tips").get()
+            .addOnFailureListener{
+                info ->
+                Toast.makeText(
+                    baseContext,
+                    info.toString(),
+                    Toast.LENGTH_SHORT,
+                ).show()
+                Log.d("fb-test", info.toString())
             }
-            //call a function to work with your array
-           // myFun(dataSets)
-        }
+            .addOnSuccessListener { documents ->
+                Log.d("test-fb", "Test log")
+                for (document in documents) {
+                    val title = document["title"].toString()
+                    val text = document["text"].toString()
+                    val isFavorite: Boolean = document["favorite"] as Boolean
+                    val tip :Tip = Tip(id = "", title=title, text = text, isFavorite = isFavorite)
+                    Log.d("test-fb", tip.toString())
+                    print(tip.toString())
+                }
+        }*/
+
+
 
 
         setContent {
@@ -67,12 +89,29 @@ class HomeActivity : ComponentActivity() {
                         modifier = Modifier.padding(innerPadding),
                         onClickStartStop = {},
                         onClickReset = {},
+                        onClickTips = ::goToTips,
+                        onClickLogout = ::logOut,
                         timeSeconds = 0,
                         sessionState = SessionState.WORK
                     )
                 }
             }
         }
+    }
+
+    private fun logOut(){
+        Firebase.auth.signOut()
+        finish()
+        Toast.makeText(
+            baseContext,
+            "Logout",
+            Toast.LENGTH_SHORT,
+        ).show()
+    }
+
+    private fun goToTips() {
+        val intent = Intent(this, TipsActivity::class.java)
+        startActivity(intent)
     }
 }
 
@@ -125,6 +164,8 @@ fun TimerView(
     modifier: Modifier = Modifier,
     onClickStartStop: () -> Unit,
     onClickReset: () -> Unit,
+    onClickLogout: () -> Unit,
+    onClickTips: () -> Unit,
     timeSeconds: Int,
     sessionState: Enum<SessionState>
 ) {
@@ -138,22 +179,61 @@ fun TimerView(
 
         ) {
         //text in a box with rounded corners
-        Box(
-            modifier = Modifier
-                .background(
-                    Color.LightGray,
-                    shape = RoundedCornerShape(20.dp)
+
+        Row(){
+            IconButton(
+                onClick = {onClickTips()},
+                modifier = Modifier.weight(1f)
+
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Add,
+                    contentDescription = "Tips"
                 )
-                .border(BorderStroke(2.dp, Color.Black), shape = RoundedCornerShape(20.dp))
-                .padding(8.dp)
-        ) {
-            Text(
-                text = getSessionStateString(sessionState),
-                modifier = Modifier,
-                color = Color.Black,
-                fontWeight = Bold
-            )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(3f),
+                horizontalArrangement = Arrangement.Center,
+            ){
+                Box(
+                    modifier = Modifier
+                        .background(
+                            Color.LightGray,
+                            shape = RoundedCornerShape(20.dp)
+                        )
+                        .border(BorderStroke(2.dp, Color.Black), shape = RoundedCornerShape(20.dp))
+                        .padding(8.dp)
+
+
+                ) {
+                    Text(
+                        text = getSessionStateString(sessionState),
+                        modifier = Modifier,
+                        color = Color.Black,
+                        fontWeight = Bold
+                    )
+                }
+
+            }
+
+
+            IconButton(
+                onClick = {onClickLogout()},
+                modifier = Modifier.weight(1f)
+
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Clear,
+                    contentDescription = "Logout"
+                )
+            }
+
+
         }
+
 
         Column(
             modifier = Modifier.fillMaxSize(),
@@ -226,6 +306,8 @@ fun TimerPreview() {
         TimerView(
             onClickStartStop = {},
             onClickReset = {},
+            onClickLogout = {},
+            onClickTips = {},
             timeSeconds = 200,
             sessionState = SessionState.WORK
         )
