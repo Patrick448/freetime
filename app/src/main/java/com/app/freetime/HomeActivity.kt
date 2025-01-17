@@ -63,6 +63,9 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import android.os.IBinder
+import androidx.activity.OnBackPressedCallback
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.delay
 
 
 class HomeActivity : ComponentActivity() {
@@ -75,6 +78,7 @@ class HomeActivity : ComponentActivity() {
     private var serviceBoundState by mutableStateOf(false)
     private var time by mutableStateOf(5)
     private var sessionState by mutableStateOf(SessionState.WORK)
+    private var backPressedOnce = false
 
 
     private val connection = object : ServiceConnection {
@@ -139,16 +143,36 @@ class HomeActivity : ComponentActivity() {
                 }
             }
         }
+
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                if (backPressedOnce) {
+                    finish()
+                } else {
+                    backPressedOnce = true
+                    Toast.makeText(this@HomeActivity, "Press back again to exit", Toast.LENGTH_SHORT).show()
+
+                    lifecycleScope.launch {
+                        delay(2000L)
+                        backPressedOnce = false
+                    }
+                }
+            }
+        })
     }
+
+
 
     private fun logOut(){
         Firebase.auth.signOut()
-        finish()
+        val intent = Intent(this, LoginRegisterActivity::class.java)
+        startActivity(intent)
         Toast.makeText(
             baseContext,
             "Logout",
             Toast.LENGTH_SHORT,
         ).show()
+        finish()
     }
 
     private fun goToTips() {
@@ -218,7 +242,7 @@ class HomeActivity : ComponentActivity() {
     }
 
     private fun resetAll() {
-        val sharedPref = getSharedPreferences("PomodojoPrefs", MODE_PRIVATE)
+        val sharedPref = getSharedPreferences("AppPrefs", MODE_PRIVATE)
         val editor = sharedPref.edit()
         editor.remove("current_session")
         editor.remove("remaining_time")
@@ -245,7 +269,7 @@ class HomeActivity : ComponentActivity() {
     }
 
     private fun createSharedPrefs() {
-        val sharedPref = getSharedPreferences("PomodojoPrefs", MODE_PRIVATE)
+        val sharedPref = getSharedPreferences("AppPrefs", MODE_PRIVATE)
         val editor = sharedPref.edit()
         editor.putInt("shortBreak", 5)
         editor.putInt("longBreak", 15)
@@ -254,7 +278,7 @@ class HomeActivity : ComponentActivity() {
     }
 
     private fun restoreSessionStateSharedPrefs(): Boolean {
-        val sharedPref = getSharedPreferences("PomodojoPrefs", MODE_PRIVATE)
+        val sharedPref = getSharedPreferences("AppPrefs", MODE_PRIVATE)
         val storedCurrentSession = sharedPref.getInt("current_session", -1)
         val storedTime = sharedPref.getInt("remaining_time", -1)
 

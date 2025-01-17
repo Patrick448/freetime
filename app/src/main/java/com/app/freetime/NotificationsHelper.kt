@@ -26,7 +26,7 @@ internal object NotificationsHelper {
         val notificationManager = context.getSystemService(Service.NOTIFICATION_SERVICE) as NotificationManager
         val channel = NotificationChannel(
             NOTIFICATION_CHANNEL_ID,
-            "pomodojo_timer_channel",
+            "app_timer_channel",
             NotificationManager.IMPORTANCE_LOW
         )
         notificationManager.createNotificationChannel(channel)

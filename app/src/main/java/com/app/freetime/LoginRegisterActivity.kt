@@ -107,6 +107,7 @@ class LoginRegisterActivity : ComponentActivity() {
     private fun goToHome() {
         val intent = Intent(this, HomeActivity::class.java)
         startActivity(intent)
+        finish()
     }
 
 

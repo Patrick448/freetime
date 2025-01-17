@@ -4,7 +4,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.ImageButton
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.app.freetime.Model.Task
@@ -18,7 +17,7 @@ class TaskAdapter(
     class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val titleTextView: TextView = itemView.findViewById(R.id.task_title)
        // val textTextView: TextView = itemView.findViewById(R.id.task_text)
-        val likeButton: Button = itemView.findViewById(R.id.like_button)
+        val updateButton: Button = itemView.findViewById(R.id.update_button)
         val deleteButton: Button = itemView.findViewById(R.id.delete_button)
     }
 
@@ -33,7 +32,7 @@ class TaskAdapter(
         //holder.textTextView.text = task.text
        // holder.likeButton.setImageResource(if (task.isFavorite) R.drawable.ic_liked else R.drawable.ic_unliked)
 
-        holder.likeButton.setOnClickListener { onLikeClicked(task) }
+        holder.updateButton.setOnClickListener { onLikeClicked(task) }
         holder.deleteButton.setOnClickListener { onDeleteClicked(task) }
     }
 

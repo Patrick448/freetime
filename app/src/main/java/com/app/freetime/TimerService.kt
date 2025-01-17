@@ -78,7 +78,7 @@ class TimerService : Service() {
 
     override fun onCreate() {
         super.onCreate()
-        sharedPref = getSharedPreferences("PomodojoPrefs", MODE_PRIVATE)
+        sharedPref = getSharedPreferences("AppPrefs", MODE_PRIVATE)
         initSessionState()
     }
 
@@ -132,7 +132,7 @@ class TimerService : Service() {
             updateTime(timeFlow.value - 1)
             val currentSessionString = getSessionStateStringNonComposable(sessionSequence[currentSessionIndex])
             updateNotification(
-                "Pomodojo",
+                "Freetime",
                 "$currentSessionString: ${formatTime(timeFlow.value)}"
             )
 
@@ -208,7 +208,7 @@ class TimerService : Service() {
         ServiceCompat.startForeground(
             this,
             1,
-            NotificationsHelper.buildNotification(this, "Pomodojo", "Session starting"),
+            NotificationsHelper.buildNotification(this, "App", "Session starting"),
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
             } else {
@@ -257,7 +257,7 @@ class TimerService : Service() {
     }
 
     private fun restoreSessionStateSharedPrefs(): Boolean {
-        val sharedPref = getSharedPreferences("PomodojoPrefs", MODE_PRIVATE)
+        val sharedPref = getSharedPreferences("AppPrefs", MODE_PRIVATE)
         val storedCurrentState = sharedPref.getInt("current_state_index", -1)
         val storedTime = sharedPref.getInt("remaining_time", -1)
 
@@ -274,7 +274,7 @@ class TimerService : Service() {
     }
 
     fun storeSessionStateSharedPrefs() {
-        val sharedPref = getSharedPreferences("PomodojoPrefs", MODE_PRIVATE)
+        val sharedPref = getSharedPreferences("AppPrefs", MODE_PRIVATE)
         val editor = sharedPref.edit()
         editor.putInt("current_state_index", currentSessionIndex)
         editor.putInt("remaining_time", timeFlow.value)
