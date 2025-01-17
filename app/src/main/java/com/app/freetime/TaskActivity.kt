@@ -48,24 +48,7 @@ class TaskActivity : AppCompatActivity() {
 
         addButton.setOnClickListener{
             val inputText = editText.text.toString() // Get text from EditText
-            val task = Task("", inputText)
-            lifecycleScope.launch{
-                if(taskOnEdit == null){
-                    dh.addTask(task,
-                        {
-                            tasks.add(task)
-                            adapter.updateList(tasks)
-                        },
-                        {ex ->
-                            Toast.makeText(baseContext, "Error adding task", Toast.LENGTH_SHORT).show()
-                        })
-                }
-                else{
-                    updateTask(taskOnEdit!!)
-                }
-
-
-            }
+            addTask(inputText)
         }
 
     }
@@ -75,6 +58,28 @@ class TaskActivity : AppCompatActivity() {
         editText.setText(task.title)
     }
 
+
+    private fun addTask(title: String, ){
+        val task = Task("", title)
+        lifecycleScope.launch{
+            if(taskOnEdit == null){
+                dh.addTask(task,
+                    { generateId ->
+                        task.id = generateId
+                        tasks.add(task)
+                        adapter.updateList(tasks)
+                    },
+                    {ex ->
+                        Toast.makeText(baseContext, "Error adding task", Toast.LENGTH_SHORT).show()
+                    })
+            }
+            else{
+                updateTask(taskOnEdit!!)
+            }
+
+
+        }
+    }
 
 
     private fun updateTask(task: Task){
