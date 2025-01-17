@@ -17,7 +17,7 @@ class TaskAdapter(
 
     class TaskViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val titleTextView: TextView = itemView.findViewById(R.id.task_title)
-        val textTextView: TextView = itemView.findViewById(R.id.task_text)
+       // val textTextView: TextView = itemView.findViewById(R.id.task_text)
         val likeButton: Button = itemView.findViewById(R.id.like_button)
         val deleteButton: Button = itemView.findViewById(R.id.delete_button)
     }

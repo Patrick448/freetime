@@ -5,6 +5,6 @@ class Model {
     data class Tip (val id: String, val title : String, val text: String, val isFavorite: Boolean)
     data class Preferences(val shortBreakDuration: Int, val longBreakDuration: Int, val workSessionDuration: Int)
     data class Session(val duration: Int, val numberCycles: Int)
-    data class Task (val id: String, val title: String)
+    data class Task (var id: String, var title: String)
     
 }
