@@ -36,6 +36,7 @@ class TimerService : Service() {
     val _timerRunning = MutableStateFlow(false)
     val timerRunningFlow: StateFlow<Boolean> get() = _timerRunning
     var onFinishSession: (SessionState) -> Unit = {}
+    var saveStateOnStop = true
 
     private var performMainWorkJob: Job? = null
     lateinit var sharedPref: SharedPreferences
@@ -225,7 +226,8 @@ class TimerService : Service() {
         return super.stopService(name)
     }
 
-    fun stopForegroundService() {
+    fun stopForegroundService(saveState: Boolean = true) {
+        this.saveStateOnStop = saveState
         _timerRunning.value = false
         performMainWorkJob?.cancel()
         stopForeground(STOP_FOREGROUND_REMOVE)
@@ -239,21 +241,18 @@ class TimerService : Service() {
             SessionState.LONG_BREAK to sharedPref.getInt("longBreak", 20) * 60
         )
 
-        sessionTimeMap = mapOf(
+       /* sessionTimeMap = mapOf(
             SessionState.WORK to 5,
             SessionState.SHORT_BREAK to 2,
             SessionState.LONG_BREAK to 3
-        )
-        // val restored = restoreSessionStateSharedPrefs()
-        Log.d("testing-2", "initSessionState()")
-        Log.d("testing-2", sessionTimeMap.toString())
-        Log.d("testing-2", (sessionTimeMap[sessionSequence[0]] ?: 1500).toString())
-        //if (!restored) {
+        )*/
+        //val restored = restoreSessionStateSharedPrefs()
+
         _timeFlow.value = sessionTimeMap[sessionSequence[0]] ?: 1500
         _sessionStatusFlow.value = SessionState.WORK
-        // }
 
-        Log.d("testing-2", _timeFlow.value.toString() )
+        restoreSessionStateSharedPrefs()
+
     }
 
     private fun restoreSessionStateSharedPrefs(): Boolean {
@@ -285,7 +284,11 @@ class TimerService : Service() {
 
     override fun onDestroy() {
         performMainWorkJob?.cancel()
-        storeSessionStateSharedPrefs()
+
+        if(saveStateOnStop){
+            storeSessionStateSharedPrefs()
+        }
+
         Log.d("Stopped", "Service Stopped")
         super.onDestroy()
     }

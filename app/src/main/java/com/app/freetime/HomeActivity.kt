@@ -4,8 +4,6 @@ import android.content.ComponentName
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Bundle
-import android.util.Log
-import android.widget.Button
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -33,7 +31,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.font.FontWeight.Companion.Bold
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.filled.MoreVert
@@ -41,30 +38,23 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.runtime.*
 import androidx.core.content.ContextCompat
-import com.app.freetime.Model.Tip
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import com.google.firebase.firestore.firestore
-import java.nio.file.WatchEvent
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import android.os.IBinder
 import androidx.activity.OnBackPressedCallback
-import kotlinx.coroutines.coroutineScope
+import androidx.compose.material.icons.filled.Settings
+import com.app.freetime.Model.Preferences
 import kotlinx.coroutines.delay
 
 
@@ -79,7 +69,7 @@ class HomeActivity : ComponentActivity() {
     private var time by mutableStateOf(5)
     private var sessionState by mutableStateOf(SessionState.WORK)
     private var backPressedOnce = false
-
+    var dh: DataHandler = DataHandler()
 
     private val connection = object : ServiceConnection {
 
@@ -119,13 +109,18 @@ class HomeActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        loadPreferencesToSharedPreferences {
+            Toast.makeText(this, "Failed to load preferences from remote database", Toast.LENGTH_SHORT).show()
+        }
+
         enableEdgeToEdge()
         checkAndRequestNotificationPermission()
-        createSharedPrefs()
+        //createSharedPrefs()
         tryToBindToServiceIfRunning()
 
 
-        var dh: DataHandler = DataHandler()
+
 
         setContent {
             FreetimeTheme() {
@@ -136,7 +131,7 @@ class HomeActivity : ComponentActivity() {
                         onClickReset = ::resetAll,
                         onClickTips = ::goToTips,
                         onClickTasks = ::goToTasks,
-                        onClickLogout = ::logOut,
+                        onClickSettings = ::goToSettings,
                         timeSeconds = time,
                         sessionState = sessionState
                     )
@@ -163,17 +158,43 @@ class HomeActivity : ComponentActivity() {
 
 
 
-    private fun logOut(){
-        Firebase.auth.signOut()
-        val intent = Intent(this, LoginRegisterActivity::class.java)
+    private fun goToSettings(){
+        val intent = Intent(this, SettingsActivity::class.java)
         startActivity(intent)
-        Toast.makeText(
-            baseContext,
-            "Logout",
-            Toast.LENGTH_SHORT,
-        ).show()
-        finish()
+
     }
+
+
+    /**
+     * Loads user preferences from Firestore and saves them in SharedPreferences.
+     */
+    fun loadPreferencesToSharedPreferences(onFailure: (Exception) -> Unit) {
+
+        lifecycleScope.launch{
+            dh.getPreferences(
+                onSuccess = { preferences ->
+                    // Save the preferences into SharedPreferences
+                    savePreferencesToSharedPreferences(preferences)
+                },
+                onFailure = { e -> onFailure(e); createSharedPrefs() }
+            )
+        }
+
+    }
+
+    /**
+     * Saves preferences to SharedPreferences.
+     */
+    private fun savePreferencesToSharedPreferences(preferences: Preferences) {
+        with(getSharedPreferences("AppPrefs", MODE_PRIVATE).edit()) {
+            putInt("focusTime", preferences.workSessionDuration)
+            putInt("shortBreak", preferences.shortBreakDuration)
+            putInt("longBreak", preferences.longBreakDuration)
+            apply() // Apply changes asynchronously
+        }
+    }
+
+
 
     private fun goToTips() {
         val intent = Intent(this, TipsActivity::class.java)
@@ -235,20 +256,26 @@ class HomeActivity : ComponentActivity() {
         timerPaused = false
     }
 
-    private fun stopService() {
-        timerService?.stopForegroundService()
+    private fun storeServiceState(){
+        timerService?.storeSessionStateSharedPrefs()
+    }
+
+    private fun stopService(saveState: Boolean = true) {
+        timerService?.stopForegroundService(saveState)
         unbindService(connection)
         timerRunning = false
     }
 
     private fun resetAll() {
+        if (timerRunning) stopService(saveState = false)
+
         val sharedPref = getSharedPreferences("AppPrefs", MODE_PRIVATE)
         val editor = sharedPref.edit()
         editor.remove("current_session")
         editor.remove("remaining_time")
         editor.remove("current_state_index")
         editor.apply()
-        if (timerRunning) stopService()
+
         //if (!restoreSessionStateSharedPrefs()) {
         //   Toast.makeText(this, "Reset", Toast.LENGTH_SHORT).show()
         // }
@@ -260,6 +287,7 @@ class HomeActivity : ComponentActivity() {
         if (timerRunning) {
             stopService()
             timerPaused = true
+           // storeServiceState()
         } else if(timerPaused) {
             resumeService()
         }else{
@@ -345,7 +373,7 @@ fun TimerView(
     modifier: Modifier = Modifier,
     onClickStartStop: () -> Unit,
     onClickReset: () -> Unit,
-    onClickLogout: () -> Unit,
+    onClickSettings: () -> Unit,
     onClickTips: () -> Unit,
     onClickTasks:() -> Unit,
     timeSeconds: Int,
@@ -404,8 +432,8 @@ fun TimerView(
                 modifier = Modifier.weight(1f),
                 horizontalArrangement = Arrangement.End
             ) {
-                IconButton(onClick = { onClickLogout() }) {
-                    Icon(imageVector = Icons.Default.ExitToApp, contentDescription = "Logout")
+                IconButton(onClick = { onClickSettings() }) {
+                    Icon(imageVector = Icons.Default.Settings, contentDescription = "Logout")
                 }
             }
         }
@@ -464,7 +492,7 @@ fun TimerPreview() {
         TimerView(
             onClickStartStop = {},
             onClickReset = {},
-            onClickLogout = {},
+            onClickSettings = {},
             onClickTips = {},
             onClickTasks = {},
             timeSeconds = 200,

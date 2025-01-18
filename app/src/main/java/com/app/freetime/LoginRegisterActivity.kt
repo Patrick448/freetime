@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 //import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
+import com.google.firebase.firestore.FirebaseFirestore
 import java.nio.file.WatchEvent
 
 class LoginRegisterActivity : ComponentActivity() {
@@ -54,6 +55,7 @@ class LoginRegisterActivity : ComponentActivity() {
         }
 
     }
+    
 
     private fun createAccount(email: String, password: String) {
         // [START create_user_with_email]
