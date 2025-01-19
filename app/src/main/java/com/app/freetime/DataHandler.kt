@@ -263,7 +263,8 @@ class DataHandler {
 
 
     suspend fun delete(collectionName: String, id: String, onSuccess: () -> Unit, onFailure: (Exception) -> Unit){
-        db.collection(collectionName).document(id).delete()
+
+        getCurrentUserCollection().collection(collectionName).document(id).delete()
             .addOnSuccessListener {
                 onSuccess()
             }
