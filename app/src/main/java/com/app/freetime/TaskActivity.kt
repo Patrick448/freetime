@@ -68,6 +68,7 @@ class TaskActivity : AppCompatActivity() {
                         task.id = generateId
                         tasks.add(task)
                         adapter.updateList(tasks)
+                        editText.setText("")
                     },
                     {ex ->
                         Toast.makeText(baseContext, "Error adding task", Toast.LENGTH_SHORT).show()
